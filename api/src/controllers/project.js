@@ -58,12 +58,16 @@ router.get("/:id", passport.authenticate("user", { session: false }), async (req
 // Delete a project
 router.delete("/:id", passport.authenticate("user", { session: false }), async (req, res) => {
   try {
+    const ExpenseObject = require("../models/expense");
     const project = await ProjectObject.findOne({ _id: req.params.id, userId: req.user._id });
     
     if (!project) {
       return res.status(404).send({ ok: false, code: ERROR_CODES.NOT_FOUND });
     }
 
+    // Delete all expenses associated with this project
+    await ExpenseObject.deleteMany({ projectId: req.params.id });
+    
     await ProjectObject.findOneAndDelete({ _id: req.params.id });
     return res.status(200).send({ ok: true });
   } catch (error) {
